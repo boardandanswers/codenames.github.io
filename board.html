@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Board</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .container {
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1px;
+        }
+        .square {
+            width: 120px;
+            height: 120px;
+            background-color: gray;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .color-palette {
+            margin: 20px 0;
+        }
+        .color-box {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 2px solid black;
+            cursor: pointer;
+        }
+        .color-selection {
+            margin: 20px 0;
+        }
+        .count-label {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="grid" class="grid"></div>
+        <div id="color-palette" class="color-palette"></div>
+        <div id="color-selection" class="color-selection"></div>
+        <div id="count-label" class="count-label"></div>
+        <button id="refresh-button">Refresh</button>
+    </div>
+    <script>
+        const words = [
+            "AFRICA", "AGENT", "AIR", "ALIEN", "ALPS", "AMAZON", "AMBULANCE", "AMERICA",
+            "ANGEL", "ANTARCTICA", "APPLE", "ARM", "ATLANTIS", "AUSTRALIA", "AZTEC",
+            "BACK", "BALL", "BAND", "BANK", "BAR", "BARK", "BAT", "BATTERY", "BEACH",
+            "BEAR", "BEAT", "BED", "BEIJING", "BELL", "BELT", "BERLIN", "BERMUDA", 
+            "BERRY", "BILL", "BLOCK", "BOARD", "BOLT", "BOMB", "BOND", "BOOM", "BOOT", 
+            "BOTTLE", "BOW", "BOX", "BRIDGE", "BRUSH", "BUCK", "BUFFALO", "BUG", 
+            "BUGLE", "BUTTON", "CALF", "CANADA", "CAP", "CAPITAL", "CAR", "CARD", 
+            "CARROT", "CASINO", "CAST", "CAT", "CELL", "CENTAUR", "CENTER", "CHAIR", 
+            "CHANGE", "CHARGE", "CHECK", "CHEST", "CHICK", "CHINA", "CHOCOLATE", 
+            "CHURCH", "CIRCLE", "CLIFF", "CLOAK", "CLUB", "CODE", "COLD", "COMIC", 
+            "COMPOUND", "CONCERT", "CONDUCTOR", "CONTRACT", "COOK", "COPPER", 
+            "COTTON", "COURT", "COVER", "CRANE", "CRASH", "CRICKET", "CROSS", 
+            "CROWN", "CYCLE", "CZECH", "DANCE", "DATE", "DAY", "DEATH", "DECK", 
+            "DEGREE", "DIAMOND", "DICE", "DINOSAUR", "DISEASE", "DOCTOR", "DOG", 
+            "DRAFT", "DRAGON", "DRESS", "DRILL", "DROP", "DUCK", "DWARF", "EAGLE", 
+            "EGYPT", "EMBASSY", "ENGINE", "ENGLAND", "EUROPE", "EYE", "FACE", 
+            "FAIR", "FALL", "FAN", "FENCE", "FIELD", "FIGHTER", "FIGURE", "FILE", 
+            "FILM", "FIRE", "FISH", "FLUTE", "FLY", "FOOT", "FORCE", "FOREST", 
+            "FORK", "FRANCE", "GAME", "GAS", "GENIUS", "GERMANY", "GHOST", "GIANT", 
+            "GLASS", "GLOVE", "GOLD", "GRACE", "GRASS", "GREECE", "GREEN", "GROUND", 
+            "HAM", "HAND", "HAWK", "HEAD", "HEART", "HELICOPTER", "HIMALAYAS", "HOLE", 
+            "HOLLYWOOD", "HONEY", "HOOD", "HOOK", "HORN", "HORSE", "HORSESHOE", 
+            "HOSPITAL", "HOTEL", "ICE", "ICE CREAM", "INDIA", "IRON", "IVORY", "JACK", 
+            "JAM", "JET", "JUPITER", "KANGAROO", "KETCHUP", "KEY", "KID", "KING", 
+            "KIWI", "KNIFE", "KNIGHT", "LAB", "LAP", "LASER", "LAWYER", "LEAD", 
+            "LEMON", "LEPRECHAUN", "LIFE", "LIGHT", "LIMOUSINE", "LINE", "LINK", 
+            "LION", "LITTER", "LOCH NESS", "LOCK", "LOG", "LONDON", "LUCK", "MAIL", 
+            "MAMMOTH", "MAPLE", "MARBLE", "MARCH", "MASS", "MATCH", "MERCURY", 
+            "MEXICO", "MICROSCOPE", "MILLIONAIRE", "MINE", "MINT", "MISSILE", 
+            "MODEL", "MOLE", "MOON", "MOSCOW", "MOUNT", "MOUSE", "MOUTH", "MUG", 
+            "NAIL", "NEEDLE", "NET", "NEW YORK", "NIGHT", "NINJA", "NOTE", "NOVEL", 
+            "NURSE", "NUT", "OCTOPUS", "OIL", "OLIVE", "OLYMPUS", "OPERA", "ORANGE", 
+            "ORGAN", "PALM", "PAN", "PANTS", "PAPER", "PARACHUTE", "PARK", "PART", 
+            "PASS", "PASTE", "PENGUIN", "PHOENIX", "PIANO", "PIE", "PILOT", "PIN", 
+            "PIPE", "PIRATE", "PISTOL", "PIT", "PITCH", "PLANE", "PLASTIC", "PLATE", 
+            "PLATYPUS", "PLAY", "PLOT", "POINT", "POISON", "POLE", "POLICE", "POOL", 
+            "PORT", "POST", "POUND", "PRESS", "PRINCESS", "PUMPKIN", "PUPIL", 
+            "PYRAMID", "QUEEN", "RABBIT", "RACKET", "RAY", "REVOLUTION", "RING", 
+            "ROBIN", "ROBOT", "ROCK", "ROME", "ROOT", "ROSE", "ROULETTE", "ROUND", 
+            "ROW", "RULER", "SATELLITE", "SATURN", "SCALE", "SCHOOL", "SCIENTIST", 
+            "SCORPION", "SCREEN", "SCUBA DIVER", "SEAL", "SERVER", "SHADOW", 
+            "SHAKESPEARE", "SHARK", "SHIP", "SHOE", "SHOP", "SHOT", "SINK", 
+            "SKYSCRAPER", "SLIP", "SLUG", "SMUGGLER", "SNOW", "SNOWMAN", "SOCK", 
+            "SOLDIER", "SOUL", "SOUND", "SPACE", "SPELL", "SPIDER", "SPIKE", 
+            "SPINE", "SPOT", "SPRING", "SPY", "SQUARE", "STADIUM", "STAFF", "STAR", 
+            "STATE", "STICK", "STOCK", "STRAW", "STREAM", "STRIKE", "STRING", "SUB", 
+            "SUIT", "SUPERHERO", "SWING", "SWITCH", "TABLE", "TABLET", "TAG", "TAIL", 
+            "TAP", "TEACHER", "TELESCOPE", "TEMPLE", "THEATER", "THIEF", "THUMB", 
+            "TICK", "TIE", "TIME", "TOKYO", "TOOTH", "TORCH", "TOWER", "TRACK", 
+            "TRAIN", "TRIANGLE", "TRIP", "TRUNK", "TUBE", "TURKEY", "UNDERTAKER", 
+            "UNICORN", "VACUUM", "VAN", "VET", "WAKE", "WALL", "WAR", "WASHER", 
+            "WASHINGTON", "WATCH", "WATER", "WAVE", "WEB", "WELL", "WHALE", "WHIP", 
+            "WIND", "WITCH", "WORM", "YARD"
+        ];
+        let usedWords = [];
+        let unusedWords = [...words];
+        console.log(usedWords)
+        let color = "gray";
+        let selectedColor = "red";
+
+        const gridElement = document.getElementById("grid");
+        const countLabel = document.getElementById("count-label");
+        const refreshButton = document.getElementById("refresh-button");
+        const colorPalette = document.getElementById("color-palette");
+        const colorSelection = document.getElementById("color-selection");
+
+        const colors = ["gray", "white", "black", "red", "blue"];
+        colors.forEach(c => {
+            const colorBox = document.createElement("div");
+            colorBox.className = "color-box";
+            colorBox.style.backgroundColor = c;
+            colorBox.addEventListener("click", () => selectColor(c));
+            colorPalette.appendChild(colorBox);
+        });
+
+        ["red", "blue"].forEach(c => {
+            const radio = document.createElement("input");
+            radio.type = "radio";
+            radio.name = "color";
+            radio.value = c;
+            radio.checked = c === "red";
+            radio.addEventListener("change", updateCount);
+            colorSelection.appendChild(radio);
+            colorSelection.appendChild(document.createTextNode(c.charAt(0).toUpperCase() + c.slice(1)));
+        });
+
+        function createGrid() {
+            if (unusedWords.length === 0) {
+                unusedWords = [...words];
+                usedWords = [];
+            }
+
+            const shuffledWords = [...new Set(unusedWords)].sort(() => 0.5 - Math.random()).slice(0, 25);
+            gridElement.innerHTML = '';
+
+            shuffledWords.forEach(word => {
+                const square = document.createElement("div");
+                square.className = "square";
+                square.textContent = word;
+                square.addEventListener("click", changeSquareColor);
+                gridElement.appendChild(square);
+                usedWords.push(word);
+            });
+
+            unusedWords = unusedWords.filter(word => !usedWords.includes(word));
+            updateCount();
+        }
+
+        function changeSquareColor(event) {
+            event.target.style.backgroundColor = color;
+            event.target.style.color = complementColor(color);
+            updateCount();
+        }
+
+        function complementColor(color) {
+            if (color === "white") return "black";
+            return "white";
+        }
+
+        function selectColor(selected) {
+            color = selected;
+        }
+
+        function updateCount() {
+            const redCount = Array.from(gridElement.children).filter(square => square.style.backgroundColor === "red").length;
+            const blueCount = Array.from(gridElement.children).filter(square => square.style.backgroundColor === "blue").length;
+
+            selectedColor = document.querySelector('input[name="color"]:checked').value;
+            const redTotalCount = selectedColor === "red" ? 8 : 7;
+            const blueTotalCount = selectedColor === "blue" ? 8 : 7;
+            countLabel.textContent = `Red: ${redTotalCount - redCount}   -   Blue: ${blueTotalCount - blueCount}`;
+        }
+
+        refreshButton.addEventListener("click", createGrid);
+
+        createGrid();
+    </script>
+</body>
+</html>

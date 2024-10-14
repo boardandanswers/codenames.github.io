@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Answers</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        #grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 100px);
+            grid-gap: 1px;
+        }
+
+        .grid-item {
+            width: 100px;
+            height: 100px;
+        }
+
+        .color-label {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="grid-container"></div>
+    <div id="color-label" class="color-label"></div>
+    <button id="refresh-button">Refresh</button>
+
+    <script>
+        const gridContainer = document.getElementById('grid-container');
+        const colorLabel = document.getElementById('color-label');
+        const refreshButton = document.getElementById('refresh-button');
+
+        function createGrid() {
+            gridContainer.innerHTML = '';
+
+            const gridSize = 5;
+            const colors = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
+
+            const baseColor = Math.random() < 0.5 ? 'Red' : 'Blue';
+            let redCount, blueCount;
+
+            if (baseColor === 'Red') {
+                redCount = 8;
+                blueCount = 7;
+            } else {
+                redCount = 7;
+                blueCount = 8;
+            }
+
+            const totalSquares = gridSize * gridSize;
+            const allPositions = Array.from({ length: totalSquares }, (_, i) => i);
+            shuffle(allPositions);
+
+            const redPositions = allPositions.slice(0, redCount);
+            const bluePositions = allPositions.slice(redCount, redCount + blueCount);
+
+            redPositions.forEach(pos => {
+                const [row, col] = getRowCol(pos, gridSize);
+                colors[row][col] = 'red';
+            });
+
+            bluePositions.forEach(pos => {
+                const [row, col] = getRowCol(pos, gridSize);
+                colors[row][col] = 'blue';
+            });
+
+            const remainingPositions = allPositions.slice(redCount + blueCount);
+            if (remainingPositions.length) {
+                const blackPos = remainingPositions.splice(Math.floor(Math.random() * remainingPositions.length), 1)[0];
+                
+                remainingPositions.forEach(pos => {
+                    const [row, col] = getRowCol(pos, gridSize);
+                    colors[row][col] = 'white';
+                });
+
+                const [blackRow, blackCol] = getRowCol(blackPos, gridSize);
+                colors[blackRow][blackCol] = 'black';
+            }
+
+            colors.forEach((row) => {
+                row.forEach((color) => {
+                    const div = document.createElement('div');
+                    div.classList.add('grid-item');
+                    div.style.backgroundColor = color;
+                    gridContainer.appendChild(div);
+                });
+            });
+
+            colorLabel.textContent = baseColor;
+        }
+
+        function getRowCol(pos, gridSize) {
+            return [Math.floor(pos / gridSize), pos % gridSize];
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        refreshButton.addEventListener('click', createGrid);
+
+        createGrid();
+    </script>
+</body>
+</html>
